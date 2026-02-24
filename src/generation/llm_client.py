@@ -13,9 +13,8 @@ def get_llm_response(query, retrieved_results):
     """
     Send query + retrieved context to OpenAI and get a response.
     """
+    
     # Format retrieved results into docs with text and metadata
-    print("DEBUG retrieved docs count:", len(retrieved_results["documents"][0]))
-    print("DEBUG retrieved metadatas:", retrieved_results["metadatas"])
     docs = []
     for i in range(len(retrieved_results["documents"][0])):
         docs.append({

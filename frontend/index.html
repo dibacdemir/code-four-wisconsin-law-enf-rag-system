@@ -265,6 +265,8 @@
         <h1>Wisconsin Legal Chat</h1>
         <span class="badge">RAG System</span>
         <button class="export-btn" onclick="exportConversation()" style="margin-left:auto; background:transparent; border:1px solid #333333; color:#d1d5db; padding:6px 16px; border-radius:4px; font-size:13px; cursor:pointer; transition:all 0.3s ease;" onmouseover="this.style.borderColor='#005cde';this.style.color='#fff'" onmouseout="this.style.borderColor='#333333';this.style.color='#d1d5db'">Export Report</button>
+        <button onclick="localStorage.removeItem('wi_legal_chat_history'); chatArea.innerHTML=''" style="margin-left:8px; background:transparent; border:1px solid #333333; color:#d1d5db; padding:6px 16px; border-radius:4px; font-size:13px; cursor:pointer; transition:all 0.3s ease;" onmouseover="this.style.borderColor='#ef4444';this.style.color='#fff'" onmouseout="this.style.borderColor='#333333';this.style.color='#d1d5db'">Clear</button>
+
     </div>
 
     <div class="disclaimer">
@@ -401,7 +403,7 @@
 
             chatArea.appendChild(messageDiv);
             chatArea.scrollTop = chatArea.scrollHeight;
-
+            saveHistory()
             return messageDiv;
         }
 
@@ -461,6 +463,42 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+
+            function saveHistory() {
+            const messages = [];
+            chatArea.querySelectorAll(".message").forEach(msg => {
+                messages.push({
+                    role: msg.classList.contains("user") ? "user" : "assistant",
+                    html: msg.innerHTML,
+                });
+            });
+            try {
+                localStorage.setItem("wi_legal_chat_history", JSON.stringify(messages));
+            } catch (e) {
+                // localStorage full or unavailable — silently skip
+            }
+        }
+
+        function loadHistory() {
+            try {
+                const saved = localStorage.getItem("wi_legal_chat_history");
+                if (!saved) return;
+                const messages = JSON.parse(saved);
+                messages.forEach(({ role, html }) => {
+                    const div = document.createElement("div");
+                    div.className = `message ${role}`;
+                    div.innerHTML = html;
+                    chatArea.appendChild(div);
+                });
+                chatArea.scrollTop = chatArea.scrollHeight;
+            } catch (e) {
+                localStorage.removeItem("wi_legal_chat_history");
+            }
+        }
+
+        // Load history on page open
+        loadHistory();
+
    
     </script>
 

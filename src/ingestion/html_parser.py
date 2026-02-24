@@ -42,3 +42,4 @@ def parse_html(file_path):
         "source_file": filename,
         "doc_type": doc_type,
     }]
+

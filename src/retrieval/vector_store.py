@@ -76,6 +76,41 @@ def query_vector_store(query_text, n_results=5, where_filter=None):
     results = collection.query(**kwargs)
     return results
 
+# Common law enforcement abbreviations → expanded terms
+_ABBREVIATIONS = {
+    "owi": "operating while intoxicated",
+    "dui": "driving under the influence",
+    "dwi": "driving while intoxicated",
+    "bac": "blood alcohol concentration",
+    "pac": "prohibited alcohol concentration",
+    "mvr": "motor vehicle record",
+    "mva": "motor vehicle accident",
+    "leo": "law enforcement officer",
+    "tro": "temporary restraining order",
+    "dv": "domestic violence",
+    "cdl": "commercial driver license",
+    "pts": "points",
+    "fta": "failure to appear",
+    "rso": "registered sex offender",
+    "terry stop": "investigative stop reasonable suspicion",
+    "miranda": "miranda rights warnings custodial interrogation",
+    "4th amendment": "fourth amendment unreasonable search seizure",
+}
+
+def expand_query(query_text):
+    """
+    Expand law enforcement abbreviations in the query to improve retrieval.
+    E.g. 'OWI 3rd' -> 'OWI operating while intoxicated 3rd'
+    """
+    expanded = query_text
+    query_lower = query_text.lower()
+    for abbrev, full in _ABBREVIATIONS.items():
+        if abbrev in query_lower:
+            # Append the expansion rather than replace, so original terms are kept too
+            if full not in query_lower:
+                expanded = expanded + " " + full
+    return expanded
+
 def hybrid_search(query_text, n_results=5, where_filter=None):
     """
     Hybrid search: combines semantic vector search with keyword matching.
@@ -83,7 +118,9 @@ def hybrid_search(query_text, n_results=5, where_filter=None):
     when they appear literally in the retrieved chunks.
     Returns merged, re-ranked results with a confidence score (0.0 - 1.0).
     """
+    query_text = expand_query(query_text)
     collection = get_vector_store()
+
 
     # Fetch more candidates than needed so we have room to re-rank
     fetch_n = min(n_results * 3, collection.count())
