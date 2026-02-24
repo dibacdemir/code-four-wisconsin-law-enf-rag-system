@@ -21,10 +21,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 from dotenv import load_dotenv
 load_dotenv()
 
-from ingestion.pdf_parser import parse_all_pdfs
+from ingestion.pipeline import parse_all_documents
 from ingestion.chunker import chunk_documents
 from retrieval.vector_store import get_vector_store, index_chunks
-
 
 
 def reset_collection():
@@ -55,8 +54,8 @@ def main():
         reset_collection()
 
     # Step 1: Parse
-    logger.info("=== Step 1: Parsing PDFs from %s ===", data_dir)
-    pages = parse_all_pdfs(data_dir)
+    logger.info("=== Step 1: Parsing documents from %s ===", data_dir)
+    pages = parse_all_documents(data_dir)
     logger.info("Total pages extracted: %d", len(pages))
 
     if not pages:

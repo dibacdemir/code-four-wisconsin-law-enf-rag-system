@@ -152,14 +152,14 @@ def hybrid_search(query_text, n_results=5, where_filter=None):
 if __name__ == "__main__":
     import sys
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    from ingestion.pdf_parser import parse_all_pdfs
+    from ingestion.pipeline import parse_all_documents
     from ingestion.chunker import chunk_documents
 
     data_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw")
     data_dir = os.path.normpath(data_dir)
 
     # Parse and chunk
-    pages = parse_all_pdfs(data_dir)
+    pages = parse_all_documents(data_dir)
     chunks = chunk_documents(pages)
 
     # Index

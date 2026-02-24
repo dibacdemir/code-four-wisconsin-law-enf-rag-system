@@ -117,12 +117,12 @@ if __name__ == "__main__":
     import os
     import sys
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    from ingestion.pdf_parser import parse_all_pdfs
+    from ingestion.pipeline import parse_all_documents
 
     data_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw")
     data_dir = os.path.normpath(data_dir)
 
-    pages = parse_all_pdfs(data_dir)
+    pages = parse_all_documents(data_dir)
     chunks = chunk_documents(pages)
 
     print(f"\nTotal chunks: {len(chunks)}")
