@@ -98,7 +98,8 @@ def test_hybrid_search_returns_expected_keys():
 
 def test_hybrid_search_respects_n_results():
     results = hybrid_search("vehicle search traffic stop", n_results=3)
-    assert len(results["documents"][0]) <= 3
+    # Citation chain following may append up to 2 cross-referenced sections
+    assert len(results["documents"][0]) <= 5
 
 def test_hybrid_search_confidence_in_range():
     results = hybrid_search("Miranda rights juvenile", n_results=3)

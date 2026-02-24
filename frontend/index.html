@@ -5,320 +5,883 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wisconsin Legal Chat – Code Four</title>
     <style>
+        /* ═══════════════ DESIGN TOKENS ═══════════════ */
+        :root {
+            /* Color Palette */
+            --accent:         #005cde;
+            --accent-hover:   #2563eb;
+            --success:        #00B96B;
+            --success-alt:    #4ade80;
+            --warning:        #F4801A;
+            --warning-alt:    #eab308;
+            --error:          #ef4444;
+            --error-alt:      #ea5756;
+
+            /* Dark Theme (default) */
+            --bg-primary:     #121212;
+            --bg-secondary:   #0a0a0a;
+            --card-bg:        #0a0a0a;
+            --text-primary:   #ffffff;
+            --text-secondary: #d1d5db;
+            --border-light:   #222222;
+            --border-medium:  #333333;
+
+            /* Typography */
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        /* Light Theme (Optional) */
+        [data-theme="light"] {
+            --bg-primary:     #ffffff;
+            --bg-secondary:   #f3f4f6;
+            --card-bg:        #ffffff;
+            --text-primary:   #111827;
+            --text-secondary: #374151;
+            --border-light:   #e5e7eb;
+            --border-medium:  #d1d5db;
+        }
+
+        /* ═══════════════ RESET ═══════════════ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #121212;
-            color: #ffffff;
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             height: 100vh;
             display: flex;
-            flex-direction: column;
+            overflow: hidden;
+            font-size: 15px;
+            line-height: 1.5;
         }
 
-        /* Header */
-        .header {
-            background: #0a0a0a;
-            border-bottom: 1px solid #222222;
-            padding: 16px 24px;
+        /* ═══════════════ SIDEBAR ═══════════════ */
+        .sidebar {
+            width: 256px;
+            min-width: 256px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            padding: 16px 10px;
+            overflow-y: auto;
+        }
+
+        /* Logo block */
+        .sidebar-logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            padding: 6px 10px 14px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 10px;
         }
 
-        .header h1 {
-            font-size: 18px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .sidebar-logo svg { width: 26px; height: 26px; flex-shrink: 0; }
 
-        .header .badge {
-            background: #005cde;
-            color: white;
-            font-size: 0.75rem;
-            padding: 2px 10px;
-            border-radius: 9999px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        /* Quick access buttons */
-        .quick-access {
-            background: #0a0a0a;
-            border-bottom: 1px solid #222222;
-            padding: 12px 24px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .quick-btn {
-            background: transparent;
-            border: 1px solid #333333;
-            color: #d1d5db;
-            padding: 6px 14px;
-            border-radius: 4px;
+        .sidebar-logo-title {
             font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            font-weight: 600;               /* spec: 600 weight for section headers */
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-primary);
+            line-height: 1.2;
         }
 
-        .quick-btn:hover {
-            border-color: #005cde;
-            color: #ffffff;
+        /* ── STATUS BADGES: 9999px border-radius, uppercase, 0.75rem ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.75rem;             /* spec: 0.75rem */
+            font-weight: 600;
+            text-transform: uppercase;      /* spec: uppercase */
+            letter-spacing: 0.5px;
+            padding: 2px 10px;
+            border-radius: 9999px;          /* spec: full rounded */
+            line-height: 1.4;
+        }
+
+        .badge.success { background: var(--success); }
+        .badge.warning { background: var(--warning); }
+        .badge.error   { background: var(--error); }
+
+        /* ── BUTTONS: 4px border-radius, transition all 0.3s ease ── */
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 4px;             /* spec: 4px */
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all 0.3s ease;      /* spec: 0.3s */
+            margin-bottom: 10px;
+        }
+
+        .new-chat-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);         /* spec: scale(1.02) for buttons */
+        }
+
+        /* Section headers — uppercase, 600 weight */
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;               /* spec: 600 */
+            text-transform: uppercase;      /* spec: uppercase */
+            letter-spacing: 1.2px;
+            color: #4b5563;
+            padding: 10px 10px 5px;
+        }
+
+        /* Sidebar nav buttons — 4px radius */
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 7px 10px;
+            border-radius: 4px;             /* spec: 4px */
+            font-size: 14px;                /* spec: body 14-16px */
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all 0.3s ease;      /* spec: 0.3s */
+            text-align: left;
+            line-height: 1.3;
+        }
+
+        .sidebar-btn svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.55;
+            flex-shrink: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            transform: scale(1.02);         /* spec: scale(1.02) */
+        }
+
+        .sidebar-btn:hover svg { opacity: 0.9; }
+
+        .sidebar-btn.danger:hover {
+            background: rgba(239,68,68,0.08);
+            color: var(--error);
             transform: scale(1.02);
         }
 
-        /* Chat area */
+        /* Sidebar footer */
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .sidebar-footer-actions {
+            display: flex;
+            gap: 8px;
+            padding: 0 10px 10px;
+        }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-medium);
+            color: var(--text-secondary);
+            padding: 5px 10px;
+            border-radius: 4px;             /* spec: 4px */
+            font-size: 12px;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            transition: all 0.3s ease;      /* spec: 0.3s */
+            flex: 1;
+        }
+
+        .theme-toggle-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+            transform: scale(1.02);
+        }
+
+        .sidebar-disclaimer {
+            font-size: 11px;
+            color: #4b5563;
+            line-height: 1.55;
+            padding: 4px 10px;
+        }
+
+        .sidebar-disclaimer strong { color: var(--warning); }
+
+        /* ═══════════════ MAIN AREA ═══════════════ */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Welcome / empty state */
+        .welcome {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 24px 100px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;    /* spec: 0.5s ease-out */
+        }
+
+        .welcome.hidden { display: none; }
+
+        .welcome-heading {
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .welcome-sub {
+            font-size: 15px;                    /* spec: body 14-16px */
+            color: var(--text-secondary);
+            max-width: 380px;
+            line-height: 1.6;
+            opacity: 0.6;
+        }
+
+        /* Chat messages list */
         .chat-area {
             flex: 1;
             overflow-y: auto;
-            padding: 24px;
+            padding: 28px 28px 12px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 18px;
         }
 
+        .chat-area.hidden { display: none; }
+
+        /* ── MESSAGES ── */
         .message {
-            max-width: 80%;
-            animation: fadeIn 0.5s ease-out;
+            max-width: 72%;
+            animation: fadeIn 0.5s ease-out;    /* spec: 0.5s ease-out */
         }
 
-        .message.user {
-            align-self: flex-end;
+        .message.user      { align-self: flex-end; }
+        .message.assistant { align-self: flex-start; }
+
+        .message-label {
+            font-size: 0.75rem;
+            font-weight: 600;               /* spec: 600 */
+            text-transform: uppercase;      /* spec: uppercase */
+            letter-spacing: 0.9px;
+            color: #4b5563;
+            margin-bottom: 4px;
         }
 
-        .message.assistant {
-            align-self: flex-start;
-        }
+        .message.user .message-label { text-align: right; }
 
+        /* ── CARDS: 12px border-radius, 1px border, hover shadow + translateY(-4px) ── */
         .message-bubble {
-            padding: 14px 18px;
-            border-radius: 12px;
-            font-size: 15px;
-            line-height: 1.6;
+            padding: 13px 17px;
+            font-size: 15px;                /* spec: body 14-16px */
+            line-height: 1.7;
+            border-radius: 12px;            /* spec: 12px */
+            border: 1px solid transparent;  /* spec: 1px border */
+            transition: all 0.3s ease;      /* spec: 0.3s */
         }
 
         .message.user .message-bubble {
-            background: #005cde;
-            color: white;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 12px 12px 2px 12px;
+        }
+
+        .message.user .message-bubble:hover {
+            background: var(--accent-hover);
         }
 
         .message.assistant .message-bubble {
-            background: #0a0a0a;
-            border: 1px solid #222222;
-            color: #d1d5db;
+            background: var(--card-bg);
+            border-color: var(--border-light);
+            color: var(--text-secondary);
+            border-radius: 2px 12px 12px 12px;
         }
 
-        .message-label {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            font-weight: 600;
+        /* Card hover: translateY(-4px) + subtle shadow */
+        .message.assistant .message-bubble:hover {
+            transform: translateY(-4px);        /* spec: translateY(-4px) for cards */
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);  /* spec: subtle shadow on hover */
         }
 
-        .message.user .message-label {
-            text-align: right;
-        }
+        .message-bubble strong { color: var(--text-primary); font-weight: 600; }
+        .message-bubble p { margin-bottom: 8px; }
+        .message-bubble p:last-child { margin-bottom: 0; }
 
-        /* Sources */
+        /* ── SOURCES ── */
         .sources {
             margin-top: 10px;
             padding-top: 10px;
-            border-top: 1px solid #222222;
+            border-top: 1px solid var(--border-light);
         }
 
-        .sources-title {
-            font-size: 11px;
-            color: #666;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .source-tag {
-            display: inline-block;
-            background: #1a1a2e;
-            border: 1px solid #333333;
-            color: #d1d5db;
-            font-size: 12px;
-            padding: 3px 10px;
-            border-radius: 4px;
-            margin: 2px 4px 2px 0;
-        }
-
-        /* Loading animation */
-        .loading-dots {
+        .sources-meta {
             display: flex;
-            gap: 6px;
-            padding: 14px 18px;
-        }
-
-        .loading-dots span {
-            width: 8px;
-            height: 8px;
-            background: #005cde;
-            border-radius: 50%;
-            animation: bounce 1.4s ease-in-out infinite;
-        }
-
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Input area */
-        .input-area {
-            background: #0a0a0a;
-            border-top: 1px solid #222222;
-            padding: 16px 24px;
-            display: flex;
-            gap: 12px;
-        }
-
-        .input-area input {
-            flex: 1;
-            background: #121212;
-            border: 1px solid #333333;
-            color: #ffffff;
-            padding: 12px 16px;
-            border-radius: 4px;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .input-area input:focus {
-            border-color: #005cde;
-            box-shadow: 0 0 0 2px rgba(0, 92, 222, 0.2);
-        }
-
-        .input-area input::placeholder {
-            color: #666;
-        }
-
-        .send-btn {
-            background: #005cde;
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 4px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .send-btn:hover {
-            background: #2563eb;
-            transform: scale(1.02);
-        }
-
-        .send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Disclaimer banner */
-        .disclaimer {
-            background: #1a1a0a;
-            border-bottom: 1px solid #333300;
-            padding: 8px 24px;
-            font-size: 12px;
-            color: #eab308;
-            text-align: center;
-        }
-
-        /* Markdown-like formatting in responses */
-        .message-bubble strong {
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .message-bubble p {
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 8px;
         }
 
-        /* Mobile responsive */
+        .sources-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #4b5563;
+        }
+
+        /* Source tags: var(--font-mono) for technical/code content */
+        .source-tag {
+            display: inline-block;
+            background: rgba(0,92,222,0.08);
+            border: 1px solid rgba(0,92,222,0.25);
+            color: #93b8f5;
+            font-size: 11px;
+            font-family: var(--font-mono);   /* spec: font-mono for technical content */
+            padding: 3px 9px;
+            border-radius: 4px;
+            margin: 2px 4px 2px 0;
+            transition: all 0.2s ease;       /* spec: 0.2-0.3s */
+        }
+
+        .source-tag:hover {
+            background: rgba(0,92,222,0.15);
+            border-color: rgba(0,92,222,0.5);
+        }
+
+        /* ── COPY FOR REPORT BUTTON ── */
+        .message-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: transparent;
+            border: 1px solid var(--border-medium);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-family: var(--font-sans);
+            padding: 4px 10px;
+            border-radius: 4px;             /* spec: 4px */
+            cursor: pointer;
+            transition: all 0.3s ease;      /* spec: 0.3s */
+        }
+
+        .copy-btn svg {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+            transform: scale(1.02);         /* spec: scale(1.02) */
+        }
+
+        .copy-btn.copied {
+            border-color: var(--success);
+            color: var(--success);
+            transform: none;
+        }
+
+        /* ═══════════════ LOADING: SKELETON + SHIMMER ═══════════════ */
+        @keyframes shimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position:  200% 0; }
+        }
+
+        .skeleton-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 2px 12px 12px 12px;  /* match assistant bubble */
+            padding: 14px 18px;
+            width: 300px;
+        }
+
+        .skeleton-line {
+            height: 11px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background: linear-gradient(
+                90deg,
+                var(--border-light) 25%,
+                #2d2d2d            50%,
+                var(--border-light) 75%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.6s ease-in-out infinite;  /* spec: shimmer */
+        }
+
+        .skeleton-line.w-full   { width: 100%; }
+        .skeleton-line.w-85     { width: 85%; }
+        .skeleton-line.w-60     { width: 60%; margin-bottom: 0; }
+
+        /* ═══════════════ GLASS MORPHISM MODAL ═══════════════ */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(8px);          /* spec: backdrop blur */
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-backdrop.open { display: flex; }
+
+        /* Glass morphism card */
+        .modal {
+            background: rgba(10,10,10,0.82);     /* spec: glass morphism */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;                 /* spec: 12px for cards */
+            padding: 28px 32px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+            animation: fadeIn 0.5s ease-out;     /* spec: 0.5s ease-out */
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 0.75rem;
+            font-weight: 600;                    /* spec: 600 */
+            text-transform: uppercase;           /* spec: uppercase */
+            letter-spacing: 1px;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;                 /* spec: 4px */
+            transition: all 0.2s ease;          /* spec: 0.2-0.3s */
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.06);
+            transform: scale(1.02);
+        }
+
+        .modal-close svg { width: 18px; height: 18px; }
+
+        .modal-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .modal-stat:last-child { border-bottom: none; }
+
+        .modal-stat strong {
+            color: var(--text-primary);
+            font-family: var(--font-mono);       /* spec: font-mono for technical */
+        }
+
+        /* ═══════════════ ANIMATIONS ═══════════════ */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ═══════════════ INPUT AREA ═══════════════ */
+        .input-area {
+            padding: 12px 28px 20px;
+            background: var(--bg-primary);
+        }
+
+        /* ── INPUT: 4px border-radius, focus ring with primary accent ── */
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-medium);
+            border-radius: 4px;             /* spec: 4px */
+            padding: 4px 6px 4px 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent);    /* spec: focus ring with primary accent */
+            box-shadow: 0 0 0 3px rgba(0,92,222,0.15);
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 15px;                /* spec: body 14-16px */
+            font-family: var(--font-sans);
+            outline: none;
+            padding: 10px 0;
+        }
+
+        .input-wrapper input::placeholder { color: #4b5563; }
+
+        /* ── SEND BUTTON: 4px border-radius, transition 0.3s, scale(1.02) ── */
+        .send-btn {
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;             /* spec: 4px */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;      /* spec: 0.3s */
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover   { background: var(--accent-hover); transform: scale(1.02); }
+        .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .send-btn svg { width: 16px; height: 16px; }
+
+        .input-hint {
+            font-size: 11px;
+            color: #374151;
+            text-align: center;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ═══════════════ SCROLLBAR ═══════════════ */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        /* ═══════════════ MOBILE ═══════════════ */
         @media (max-width: 768px) {
-            .message { max-width: 95%; }
-            .quick-access { padding: 8px 12px; }
-            .input-area { padding: 12px; }
-            .chat-area { padding: 12px; }
+            .sidebar { display: none; }
+            .message { max-width: 92%; }
+            .chat-area { padding: 16px 16px 8px; }
+            .input-area { padding: 10px 16px 16px; }
         }
     </style>
 </head>
 <body>
 
-     <div class="header">
-        <h1>Wisconsin Legal Chat</h1>
-        <span class="badge">RAG System</span>
-        <button class="export-btn" onclick="exportConversation()" style="margin-left:auto; background:transparent; border:1px solid #333333; color:#d1d5db; padding:6px 16px; border-radius:4px; font-size:13px; cursor:pointer; transition:all 0.3s ease;" onmouseover="this.style.borderColor='#005cde';this.style.color='#fff'" onmouseout="this.style.borderColor='#333333';this.style.color='#d1d5db'">Export Report</button>
-        <button onclick="localStorage.removeItem('wi_legal_chat_history'); chatArea.innerHTML=''" style="margin-left:8px; background:transparent; border:1px solid #333333; color:#d1d5db; padding:6px 16px; border-radius:4px; font-size:13px; cursor:pointer; transition:all 0.3s ease;" onmouseover="this.style.borderColor='#ef4444';this.style.color='#fff'" onmouseout="this.style.borderColor='#333333';this.style.color='#d1d5db'">Clear</button>
+    <!-- ═══════════════ SIDEBAR ═══════════════ -->
+    <aside class="sidebar">
 
-    </div>
+        <div class="sidebar-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#005cde" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <div>
+                <div class="sidebar-logo-title">WI Legal Chat</div>
+                <span class="badge" style="margin-top:4px;">RAG System</span>
+            </div>
+        </div>
 
-    <div class="disclaimer">
-        ⚠ This system provides legal information only, not legal advice. Always consult legal counsel for specific situations.
-    </div>
+        <button class="new-chat-btn" onclick="clearChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New Conversation
+        </button>
 
-    <div class="quick-access">
-        <button class="quick-btn" onclick="askQuestion('What Miranda warnings are required for juveniles?')">Miranda – Juveniles</button>
-        <button class="quick-btn" onclick="askQuestion('Can I search a vehicle during a traffic stop without consent?')">Vehicle Search</button>
-        <button class="quick-btn" onclick="askQuestion('What are the elements required for OWI 3rd offense in Wisconsin?')">OWI 3rd Offense</button>
-        <button class="quick-btn" onclick="askQuestion('What is the statute of limitations for misdemeanor theft?')">Theft – Statute of Limitations</button>
-        <button class="quick-btn" onclick="askQuestion('Show me recent cases about Terry stops in Wisconsin')">Terry Stops</button>
-    </div>
+        <div class="section-label">Quick Queries</div>
 
-    <div class="chat-area" id="chatArea">
-        <!-- Messages appear here -->
-    </div>
+        <button class="sidebar-btn" onclick="askQuestion('What Miranda warnings are required for juveniles?')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Miranda – Juveniles
+        </button>
 
-    <div class="input-area">
-        <input
-            type="text"
-            id="queryInput"
-            placeholder="Ask a legal question..."
-            onkeydown="if(event.key === 'Enter') sendQuery()"
-        />
-        <button class="send-btn" id="sendBtn" onclick="sendQuery()">Send</button>
+        <button class="sidebar-btn" onclick="askQuestion('Can I search a vehicle during a traffic stop without consent?')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13"/>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+            </svg>
+            Vehicle Search
+        </button>
+
+        <button class="sidebar-btn" onclick="askQuestion('What are the elements required for OWI 3rd offense in Wisconsin?')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            OWI 3rd Offense
+        </button>
+
+        <button class="sidebar-btn" onclick="askQuestion('What is the statute of limitations for misdemeanor theft?')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Theft – Limitations
+        </button>
+
+        <button class="sidebar-btn" onclick="askQuestion('Show me recent cases about Terry stops in Wisconsin')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Terry Stops
+        </button>
+
+        <div class="section-label" style="margin-top:6px;">Tools</div>
+
+        <button class="sidebar-btn" onclick="exportConversation()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export Report
+        </button>
+
+        <button class="sidebar-btn" onclick="openStatsModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6"  y1="20" x2="6"  y2="14"/>
+            </svg>
+            View Analytics
+        </button>
+
+        <button class="sidebar-btn danger" onclick="clearChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+            Clear Chat
+        </button>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-actions">
+                <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">☀ Light Mode</button>
+            </div>
+            <div class="sidebar-disclaimer">
+                <strong>⚠ Legal Information Only</strong><br>
+                Not legal advice. Always consult qualified legal counsel for specific situations.
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- ═══════════════ MAIN ═══════════════ -->
+    <main class="main">
+
+        <!-- Welcome screen — shown when chat is empty -->
+        <div class="welcome" id="welcomeScreen">
+            <h1 class="welcome-heading">What can I help you with?</h1>
+            <p class="welcome-sub">Ask any Wisconsin law enforcement legal question — statutes, case law, or department policy.</p>
+        </div>
+
+        <!-- Chat messages — hidden when empty -->
+        <div class="chat-area hidden" id="chatArea"></div>
+
+        <!-- Input — always at bottom -->
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input
+                    type="text"
+                    id="queryInput"
+                    placeholder="Ask a legal question..."
+                    onkeydown="if(event.key === 'Enter') sendQuery()"
+                />
+                <button class="send-btn" id="sendBtn" onclick="sendQuery()" title="Send">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="19" x2="12" y2="5"/>
+                        <polyline points="5 12 12 5 19 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-hint">Wisconsin Law Enforcement Legal Research · Code Four RAG System</div>
+        </div>
+
+    </main>
+
+    <!-- ═══════════════ STATS MODAL (Glass Morphism) ═══════════════ -->
+    <div class="modal-backdrop" id="statsModal" onclick="handleBackdropClick(event)">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">Query Analytics</span>
+                <button class="modal-close" onclick="closeStatsModal()" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6"  y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="statsContent"></div>
+        </div>
     </div>
 
     <script>
-        const API_URL = "http://localhost:8000";
-        const chatArea = document.getElementById("chatArea");
-        const queryInput = document.getElementById("queryInput");
-        const sendBtn = document.getElementById("sendBtn");
+        const API_URL       = "http://localhost:8000";
+        const chatArea      = document.getElementById("chatArea");
+        const welcomeScreen = document.getElementById("welcomeScreen");
+        const queryInput    = document.getElementById("queryInput");
+        const sendBtn       = document.getElementById("sendBtn");
 
+        /* ── Layout toggle ── */
+        function updateLayout() {
+            const hasMessages = chatArea.children.length > 0;
+            chatArea.classList.toggle("hidden", !hasMessages);
+            welcomeScreen.classList.toggle("hidden", hasMessages);
+        }
+
+        /* ── Light/dark theme toggle ── */
+        function toggleTheme() {
+            const isLight = document.documentElement.getAttribute("data-theme") === "light";
+            document.documentElement.setAttribute("data-theme", isLight ? "dark" : "light");
+            document.getElementById("themeBtn").textContent = isLight ? "☀ Light Mode" : "☾ Dark Mode";
+        }
+
+        /* ── Stats modal ── */
+        async function openStatsModal() {
+            const modal   = document.getElementById("statsModal");
+            const content = document.getElementById("statsContent");
+
+            // Show skeleton while fetching
+            content.innerHTML = `
+                <div class="skeleton-card" style="border:none;padding:0;background:transparent;width:100%;">
+                    <div class="skeleton-line w-full"></div>
+                    <div class="skeleton-line w-85"></div>
+                    <div class="skeleton-line w-60"></div>
+                </div>`;
+            modal.classList.add("open");
+
+            try {
+                const res  = await fetch(`${API_URL}/stats`);
+                const data = await res.json();
+
+                const confPct   = Math.round(data.avg_confidence * 100);
+                const confClass = confPct >= 75 ? "success" : confPct >= 50 ? "warning" : "error";
+
+                const topRows = data.top_questions.slice(0, 5).map(q => `
+                    <div class="modal-stat" style="flex-direction:column;align-items:flex-start;gap:3px;">
+                        <span class="badge" style="font-size:10px;background:var(--border-medium);color:var(--text-secondary);">${q.count}×</span>
+                        <strong style="font-family:var(--font-sans);font-weight:400;font-size:13px;">${q.question}</strong>
+                    </div>`).join("") || `<div class="modal-stat"><span>No queries logged yet.</span></div>`;
+
+                content.innerHTML = `
+                    <div class="modal-stat">
+                        <span>Total Queries</span>
+                        <strong>${data.total_queries}</strong>
+                    </div>
+                    <div class="modal-stat">
+                        <span>Avg Confidence</span>
+                        <span class="badge ${confClass}">${confPct}%</span>
+                    </div>
+                    ${topRows}`;
+            } catch {
+                content.innerHTML = `
+                    <div class="modal-stat">
+                        <span style="color:var(--error);">Could not connect to the API server.</span>
+                    </div>`;
+            }
+        }
+
+        function closeStatsModal() {
+            document.getElementById("statsModal").classList.remove("open");
+        }
+
+        function handleBackdropClick(e) {
+            if (e.target === document.getElementById("statsModal")) closeStatsModal();
+        }
+
+        document.addEventListener("keydown", e => { if (e.key === "Escape") closeStatsModal(); });
+
+        /* ── Chat logic ── */
         function askQuestion(question) {
             queryInput.value = question;
             sendQuery();
+        }
+
+        function clearChat() {
+            localStorage.removeItem("wi_legal_chat_history");
+            chatArea.innerHTML = "";
+            updateLayout();
         }
 
         async function sendQuery() {
             const question = queryInput.value.trim();
             if (!question) return;
 
-            // Disable input while loading
             queryInput.disabled = true;
-            sendBtn.disabled = true;
+            sendBtn.disabled    = true;
 
-            // Add user message
             addMessage(question, "user");
             queryInput.value = "";
 
-            // Show loading
             const loadingEl = addLoading();
 
             try {
@@ -329,38 +892,31 @@
                 });
 
                 const data = await response.json();
-
-                // Remove loading
                 loadingEl.remove();
-
-                // Add assistant message with sources
-                addMessage(data.answer, "assistant", data.sources, data.confidence);
+                addMessage(data.answer, "assistant", data.sources, data.confidence, question);
 
             } catch (error) {
                 loadingEl.remove();
-                addMessage("Error: Could not connect to the server. Make sure the API is running.", "assistant");
+                addMessage("Error: Could not connect to the server. Make sure the API is running.", "assistant", [], null, question);
             }
 
-            // Re-enable input
             queryInput.disabled = false;
-            sendBtn.disabled = false;
+            sendBtn.disabled    = false;
             queryInput.focus();
         }
 
-        function addMessage(text, role, sources = [], confidence = null) {
-
+        function addMessage(text, role, sources = [], confidence = null, question = "") {
             const messageDiv = document.createElement("div");
             messageDiv.className = `message ${role}`;
 
             const label = document.createElement("div");
-            label.className = "message-label";
+            label.className   = "message-label";
             label.textContent = role === "user" ? "You" : "Legal Assistant";
 
             const bubble = document.createElement("div");
             bubble.className = "message-bubble";
 
-            // Basic markdown-like formatting
-            let formatted = text
+            const formatted = text
                 .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
                 .replace(/\n\n/g, "</p><p>")
                 .replace(/\n/g, "<br>");
@@ -369,65 +925,257 @@
             messageDiv.appendChild(label);
             messageDiv.appendChild(bubble);
 
-                        // Add confidence + sources if available
             if (sources && sources.length > 0) {
                 const sourcesDiv = document.createElement("div");
                 sourcesDiv.className = "sources";
 
                 const metaLine = document.createElement("div");
-                metaLine.style.cssText = "display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;";
+                metaLine.className = "sources-meta";
                 metaLine.innerHTML = `<div class="sources-title">Sources</div>`;
 
                 if (typeof confidence === "number") {
-                    const pct = Math.round(confidence * 100);
-                    const color = pct >= 75 ? "#00B96B" : pct >= 50 ? "#F4801A" : "#ef4444";
-                    metaLine.innerHTML += `<span style="font-size:11px; font-weight:600; color:${color}; text-transform:uppercase;">Confidence ${pct}%</span>`;
+                    const pct       = Math.round(confidence * 100);
+                    const badgeCls  = pct >= 75 ? "success" : pct >= 50 ? "warning" : "error";
+                    metaLine.innerHTML +=
+                        `<span class="badge ${badgeCls}">Confidence ${pct}%</span>`;
                 }
 
                 sourcesDiv.appendChild(metaLine);
 
                 sources.forEach(source => {
                     const tag = document.createElement("span");
-                    tag.className = "source-tag";
-                    if (source.doc_type === "statute") {
-                        tag.textContent = `§ ${source.section_number} (${source.source_file})`;
-                    } else {
-                        tag.textContent = `${source.source_file} (${source.doc_type})`;
-                    }
+                    tag.className   = "source-tag";
+                    tag.textContent = source.doc_type === "statute"
+                        ? `§ ${source.section_number} (${source.source_file})`
+                        : `${source.source_file} (${source.doc_type})`;
                     sourcesDiv.appendChild(tag);
                 });
 
                 messageDiv.appendChild(sourcesDiv);
             }
 
+            // Embed raw data for export into a hidden script tag inside the div's innerHTML
+            // so it survives localStorage serialization/restore
+            if (role === "assistant") {
+                const refId = "LR-" + Array.from({length: 6}, () =>
+                    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]
+                ).join("");
+
+                const metaEl = document.createElement("script");
+                metaEl.type      = "application/json";
+                metaEl.className = "message-meta";
+                metaEl.textContent = JSON.stringify({
+                    question,
+                    sources:    sources || [],
+                    confidence: confidence || 0,
+                    refId,
+                });
+                messageDiv.appendChild(metaEl);
+
+                const actionsDiv = document.createElement("div");
+                actionsDiv.className = "message-actions";
+                actionsDiv.innerHTML = `
+                    <button class="copy-btn" onclick="copyForReport(this)" title="Copy formatted supplement to clipboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copy for Report
+                    </button>
+                    <button class="copy-btn" onclick="downloadReport(this)" title="Download as .txt file">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download .txt
+                    </button>`;
+                messageDiv.appendChild(actionsDiv);
+            }
 
             chatArea.appendChild(messageDiv);
             chatArea.scrollTop = chatArea.scrollHeight;
-            saveHistory()
+            updateLayout();
+            saveHistory();
             return messageDiv;
         }
 
+        /* Skeleton shimmer loading state */
         function addLoading() {
             const messageDiv = document.createElement("div");
             messageDiv.className = "message assistant";
 
             const label = document.createElement("div");
-            label.className = "message-label";
+            label.className   = "message-label";
             label.textContent = "Legal Assistant";
 
-            const dots = document.createElement("div");
-            dots.className = "loading-dots";
-            dots.innerHTML = "<span></span><span></span><span></span>";
+            const skeleton = document.createElement("div");
+            skeleton.className = "skeleton-card";
+            skeleton.innerHTML = `
+                <div class="skeleton-line w-full"></div>
+                <div class="skeleton-line w-85"></div>
+                <div class="skeleton-line w-60"></div>
+            `;
 
             messageDiv.appendChild(label);
-            messageDiv.appendChild(dots);
+            messageDiv.appendChild(skeleton);
 
             chatArea.appendChild(messageDiv);
             chatArea.scrollTop = chatArea.scrollHeight;
+            updateLayout();
 
             return messageDiv;
         }
-        
+
+        /* ── Report Export ── */
+
+        /**
+         * Build a plain-text Legal Reference Supplement from a message div.
+         * Reads structured data from the embedded .message-meta script tag so
+         * the export works even after history is restored from localStorage.
+         */
+        function buildReportText(messageDiv) {
+            const metaEl = messageDiv.querySelector(".message-meta");
+            const meta   = metaEl ? JSON.parse(metaEl.textContent) : {};
+            const { question = "", sources = [], confidence = 0, refId = "LR-??????" } = meta;
+
+            // Get clean answer text — innerText already strips HTML tags
+            const bubble = messageDiv.querySelector(".message-bubble");
+            let answerText = bubble ? bubble.innerText.trim() : "";
+
+            // Strip residual markdown syntax and LLM disclaimer lines
+            answerText = answerText
+                .replace(/\*\*(.*?)\*\*/g, "$1")
+                .replace(/\*(.*?)\*/g, "$1")
+                .replace(/^#{1,6}\s+/gm, "")
+                .replace(/^Disclaimer:.*$/gim, "")
+                .replace(/\n{3,}/g, "\n\n")
+                .trim();
+
+            // Timestamp: MM/DD/YYYY HH:MM (24-hour, no seconds)
+            const now = new Date();
+            const ts  = `${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")}/${now.getFullYear()} ` +
+                        `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+
+            // Deduplicate and categorize sources by doc_type
+            const seen     = new Set();
+            const statutes = [], caseLaw = [], policies = [];
+            sources.forEach(src => {
+                if (seen.has(src.source_file)) return;
+                seen.add(src.source_file);
+                if      (src.doc_type === "statute")            statutes.push(src);
+                else if (src.doc_type === "case_law")           caseLaw.push(src);
+                else if (src.doc_type === "department_policy")  policies.push(src);
+            });
+
+            // Extract inline case citations from answer text
+            // Matches: "State v. Williams, 123 Wis.2d 456" style references
+            const caseRx = /\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*\s+v\.\s+[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)(?:,\s*\d+[^\n,;]*)?/g;
+            const inlineCases = new Set([...answerText.matchAll(caseRx)].map(m => m[0].trim()));
+
+            // Confidence label
+            const confPct   = Math.round(confidence * 100);
+            const confLevel = confPct >= 75 ? "High" : confPct >= 50 ? "Medium" : "Low";
+
+            const HR = "─".repeat(52);
+
+            let t = "";
+            t += `LEGAL REFERENCE SUPPLEMENT\n`;
+            t += `Date/Time Generated: ${ts}\n`;
+            t += `Reference ID: ${refId}\n`;
+            t += `\n`;
+            if (question) {
+                t += `QUERY: ${question}\n`;
+                t += `\n`;
+            }
+            t += `SUMMARY OF APPLICABLE LAW:\n`;
+            t += `${answerText}\n`;
+
+            // Only show sections that have content
+            if (statutes.length > 0) {
+                t += `\nAPPLICABLE STATUTES:\n`;
+                statutes.forEach(src => {
+                    const sec = (src.section_number && src.section_number !== "unknown" && src.section_number !== "N/A")
+                        ? src.section_number
+                        : src.source_file.replace(/\.(pdf|html)$/i, "");
+                    t += `- Wis. Stat. § ${sec}\n`;
+                });
+            }
+
+            const caseLawLines = new Set();
+            caseLaw.forEach(src => {
+                caseLawLines.add(src.source_file.replace(/\.(pdf|html)$/i, "").replace(/_/g, " "));
+            });
+            inlineCases.forEach(c => caseLawLines.add(c));
+            if (caseLawLines.size > 0) {
+                t += `\nAPPLICABLE CASE LAW:\n`;
+                caseLawLines.forEach(c => { t += `- ${c}\n`; });
+            }
+
+            if (policies.length > 0) {
+                t += `\nDEPARTMENT POLICY REFERENCES:\n`;
+                policies.forEach(src => {
+                    const sec = (src.section_number && src.section_number !== "unknown" && src.section_number !== "N/A")
+                        ? `, Section ${src.section_number}` : "";
+                    t += `- ${src.source_file.replace(/_/g, " ").replace(/\.(pdf|html)$/i, "")}${sec}\n`;
+                });
+            }
+
+            t += `\nCONFIDENCE LEVEL: ${confLevel} (${confPct}%)\n`;
+            t += `- High = 75%+, Medium = 50-74%, Low = below 50%\n`;
+            t += `\n${HR}\n`;
+            t += `This information is for reference only and does not constitute legal advice.\n`;
+            t += `Officer should verify all citations before inclusion in official reports.\n`;
+            t += `Generated by WI Legal Chat RAG System`;
+
+            return { text: t, refId };
+        }
+
+        function copyForReport(btn) {
+            const { text } = buildReportText(btn.closest(".message"));
+            navigator.clipboard.writeText(text).then(() => {
+                showFeedback(btn, "Copied!");
+            }).catch(() => {
+                // Fallback for browsers without Clipboard API
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                ta.style.cssText = "position:fixed;opacity:0;top:0;left:0;";
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand("copy"); showFeedback(btn, "Copied!"); } catch (_) {}
+                document.body.removeChild(ta);
+            });
+        }
+
+        function downloadReport(btn) {
+            const { text, refId } = buildReportText(btn.closest(".message"));
+            const blob = new Blob([text], { type: "text/plain" });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement("a");
+            a.href     = url;
+            a.download = `legal-ref-${refId}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showFeedback(btn, "Saved!");
+        }
+
+        function showFeedback(btn, label) {
+            btn.classList.add("copied");
+            const orig = btn.innerHTML;
+            btn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                ${label}`;
+            setTimeout(() => {
+                btn.innerHTML = orig;
+                btn.classList.remove("copied");
+            }, 2000);
+        }
+
         function exportConversation() {
             const messages = chatArea.querySelectorAll(".message");
             if (messages.length === 0) {
@@ -435,13 +1183,13 @@
                 return;
             }
 
-            let report = "WISCONSIN LEGAL CHAT — EXPORTED REPORT\n";
-            report += "Generated: " + new Date().toLocaleString() + "\n";
-            report += "=".repeat(60) + "\n\n";
+            let report  = "WISCONSIN LEGAL CHAT — EXPORTED REPORT\n";
+            report     += "Generated: " + new Date().toLocaleString() + "\n";
+            report     += "=".repeat(60) + "\n\n";
 
             messages.forEach(msg => {
-                const isUser = msg.classList.contains("user");
-                const bubble = msg.querySelector(".message-bubble");
+                const isUser    = msg.classList.contains("user");
+                const bubble    = msg.querySelector(".message-bubble");
                 const sourcesEl = msg.querySelector(".sources");
 
                 if (isUser) {
@@ -456,15 +1204,15 @@
             });
 
             const blob = new Blob([report], { type: "text/plain" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement("a");
+            a.href     = url;
             a.download = `legal-chat-export-${Date.now()}.txt`;
             a.click();
             URL.revokeObjectURL(url);
         }
 
-            function saveHistory() {
+        function saveHistory() {
             const messages = [];
             chatArea.querySelectorAll(".message").forEach(msg => {
                 messages.push({
@@ -475,7 +1223,7 @@
             try {
                 localStorage.setItem("wi_legal_chat_history", JSON.stringify(messages));
             } catch (e) {
-                // localStorage full or unavailable — silently skip
+                // localStorage full — silently skip
             }
         }
 
@@ -483,9 +1231,8 @@
             try {
                 const saved = localStorage.getItem("wi_legal_chat_history");
                 if (!saved) return;
-                const messages = JSON.parse(saved);
-                messages.forEach(({ role, html }) => {
-                    const div = document.createElement("div");
+                JSON.parse(saved).forEach(({ role, html }) => {
+                    const div     = document.createElement("div");
                     div.className = `message ${role}`;
                     div.innerHTML = html;
                     chatArea.appendChild(div);
@@ -496,10 +1243,8 @@
             }
         }
 
-        // Load history on page open
         loadHistory();
-
-   
+        updateLayout();
     </script>
 
 </body>

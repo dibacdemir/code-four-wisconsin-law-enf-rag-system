@@ -97,19 +97,121 @@ _ABBREVIATIONS = {
     "4th amendment": "fourth amendment unreasonable search seizure",
 }
 
+# Common legal term misspellings → corrected spellings
+_CORRECTIONS = {
+    "suspecion": "suspicion",
+    "suspicion": "suspicion",
+    "probale": "probable",
+    "probible": "probable",
+    "consitutional": "constitutional",
+    "constiutional": "constitutional",
+    "constituional": "constitutional",
+    "restaining": "restraining",
+    "arest": "arrest",
+    "arested": "arrested",
+    "arrestted": "arrested",
+    "mirnada": "miranda",
+    "mianda": "miranda",
+    "mirada": "miranda",
+    "vehicel": "vehicle",
+    "vehical": "vehicle",
+    "trafic": "traffic",
+    "traffick": "traffic",
+    "reckeless": "reckless",
+    "reckless": "reckless",
+    "intoxicaed": "intoxicated",
+    "intoxicatd": "intoxicated",
+    "harasment": "harassment",
+    "harrasment": "harassment",
+    "assalt": "assault",
+    "baterry": "battery",
+    "batery": "battery",
+    "burglery": "burglary",
+    "robery": "robbery",
+    "homocide": "homicide",
+    "homocide": "homicide",
+    "larcany": "larceny",
+    "recless": "reckless",
+    "neglagence": "negligence",
+    "neglegence": "negligence",
+    "warrent": "warrant",
+    "warant": "warrant",
+    "supena": "subpoena",
+    "subpena": "subpoena",
+    "witnes": "witness",
+    "evidance": "evidence",
+    "evidnce": "evidence",
+}
+
+
 def expand_query(query_text):
     """
-    Expand law enforcement abbreviations in the query to improve retrieval.
+    Apply spell correction for legal terms, then expand law enforcement
+    abbreviations in the query to improve retrieval.
     E.g. 'OWI 3rd' -> 'OWI operating while intoxicated 3rd'
+    E.g. 'vehicel search' -> 'vehicle search'
     """
-    expanded = query_text
-    query_lower = query_text.lower()
+    # Step 1: spell-correct word by word
+    words = query_text.split()
+    corrected_words = [_CORRECTIONS.get(w.lower(), w) for w in words]
+    expanded = " ".join(corrected_words)
+
+    # Step 2: abbreviation expansion (append expansions so original terms are kept)
+    query_lower = expanded.lower()
     for abbrev, full in _ABBREVIATIONS.items():
         if abbrev in query_lower:
-            # Append the expansion rather than replace, so original terms are kept too
             if full not in query_lower:
                 expanded = expanded + " " + full
     return expanded
+
+
+def _follow_cross_references(collection, docs, existing_ids):
+    """
+    Scan retrieved doc texts for Wisconsin statute cross-references
+    (patterns like '§ 940.01', 's. 346.63', 'section 940.01') and fetch
+    those sections from the collection.
+
+    Returns a list of (score, doc_text, metadata) tuples for newly found
+    cross-referenced sections, each with is_cross_ref=True in metadata.
+    """
+    ref_patterns = [
+        r"(?:§|s\.)\s*(\d{3}\.\d{2,3})",
+        r"\bsec(?:tion)?\.?\s+(\d{3}\.\d{2,3})",
+    ]
+
+    found_refs = set()
+    for doc in docs:
+        for pattern in ref_patterns:
+            for m in re.finditer(pattern, doc, re.IGNORECASE):
+                found_refs.add(m.group(1))
+
+    if not found_refs:
+        return []
+
+    cross_refs = []
+    for ref in found_refs:
+        try:
+            cr = collection.get(
+                where={"section_number": ref},
+                include=["documents", "metadatas"],
+            )
+            for cr_doc, cr_meta in zip(
+                cr.get("documents", []), cr.get("metadatas", [])
+            ):
+                doc_id = (
+                    cr_meta.get("source_file", "")
+                    + "|"
+                    + cr_meta.get("section_number", "")
+                )
+                if doc_id not in existing_ids:
+                    enriched = dict(cr_meta)
+                    enriched["is_cross_ref"] = True
+                    cross_refs.append((0.5, cr_doc, enriched))
+                    existing_ids.add(doc_id)
+        except Exception:
+            continue
+
+    return cross_refs
 
 def hybrid_search(query_text, n_results=5, where_filter=None):
     """
@@ -173,13 +275,31 @@ def hybrid_search(query_text, n_results=5, where_filter=None):
     scored.sort(key=lambda x: x[0], reverse=True)
     top = scored[:n_results]
 
+    # Citation chain following: scan top docs for cross-referenced statute
+    # sections and append them (up to 2 extras, deduplicated).
+    existing_ids = {
+        meta.get("source_file", "") + "|" + meta.get("section_number", "")
+        for _, _, meta in top
+    }
+    cross_refs = _follow_cross_references(
+        collection, [doc for _, doc, _ in top], existing_ids
+    )
+    top.extend(cross_refs[:2])
+
     # Normalize confidence to 0.0–1.0 range
     max_score = top[0][0] if top else 1.0
     confidence = round(min(top[0][0] / max(max_score, 1.0), 1.0), 3) if top else 0.0
 
+    # Embed per-source similarity score into each metadata dict so it flows to the frontend
+    enriched_metas = []
+    for final_score, doc, meta in top:
+        enriched = dict(meta)
+        enriched["similarity_score"] = round(min(final_score, 1.0), 3)
+        enriched_metas.append(enriched)
+
     return {
         "documents": [[item[1] for item in top]],
-        "metadatas": [[item[2] for item in top]],
+        "metadatas": [enriched_metas],
         "distances": [[1.0 - item[0] for item in top]],
         "confidence": confidence,
     }

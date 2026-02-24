@@ -35,9 +35,19 @@ def get_llm_response(query, retrieved_results):
         temperature=0.1,  # Low temperature for factual accuracy
     )
 
+    # Deduplicate sources by (source_file, section_number) — keep first occurrence
+    seen = set()
+    unique_sources = []
+    for doc in docs:
+        meta = doc["metadata"]
+        key = (meta.get("source_file", ""), meta.get("section_number", ""))
+        if key not in seen:
+            seen.add(key)
+            unique_sources.append(meta)
+
     return {
         "answer": response.choices[0].message.content,
-        "sources": [doc["metadata"] for doc in docs],
+        "sources": unique_sources,
     }
 
 
